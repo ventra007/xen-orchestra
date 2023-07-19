@@ -160,6 +160,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     )
 
     metadataContent = {
+      dedup: settings.dedup,
       jobId,
       mode: job.mode,
       scheduleId,

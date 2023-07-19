@@ -217,7 +217,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
         // get hash before deleting the file
         hash = await this.#getExtendedAttribute(file, this.#attributeKey)
       } catch (err) {
-        // attributes unknown (a non duplicated file)
         // whatever : fall back to normal delete
       }
     }
@@ -278,21 +277,25 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   // @todo : use a multiplatform package instead
-  async #getExtendedAttribute(file, attribueName) {
+  async #getExtendedAttribute(file, attributeName) {
     return new Promise((resolve, reject) => {
-      fsx.get(this.getFilePath(file), attribueName, (err, res) => {
+      fsx.get(this.getFilePath(file), attributeName, (err, res) => {
         if (err) {
           reject(err)
         } else {
           // res is a buffer
-          resolve(res.toString('utf-8'))
+          // it is null if the file doesn't have this attribute
+          if (res !== null) {
+            resolve(res.toString('utf-8'))
+          }
+          resolve(undefined)
         }
       })
     })
   }
-  async #setExtendedAttribute(file, attribueName, value) {
+  async #setExtendedAttribute(file, attributeName, value) {
     return new Promise((resolve, reject) => {
-      fsx.set(this.getFilePath(file), attribueName, value, (err, res) => {
+      fsx.set(this.getFilePath(file), attributeName, value, (err, res) => {
         if (err) {
           reject(err)
         } else {
@@ -391,24 +394,30 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   async deduplicationStats(dir = this.#dedupDirectory) {
     let nbSourceBlocks = 0
     let nbBlocks = 0
-    const files = await this._list(dir)
-    await asyncEach(
-      files,
-      async file => {
-        const stat = await fs.stat(this.getFilePath(`${dir}/${file}`))
-        if (stat.isDirectory()) {
-          const { nbSourceBlocks: nbSourceInChild, nbBlocks: nbBlockInChild } = await this.deduplicationStats(
-            `${dir}/${file}`
-          )
-          nbSourceBlocks += nbSourceInChild
-          nbBlocks += nbBlockInChild
-        } else {
-          nbSourceBlocks++
-          nbBlocks += stat.nlink - 1 // ignore current
-        }
-      },
-      { concurrency: 2 }
-    )
+    try {
+      const files = await this._list(dir)
+      await asyncEach(
+        files,
+        async file => {
+          const stat = await fs.stat(this.getFilePath(`${dir}/${file}`))
+          if (stat.isDirectory()) {
+            const { nbSourceBlocks: nbSourceInChild, nbBlocks: nbBlockInChild } = await this.deduplicationStats(
+              `${dir}/${file}`
+            )
+            nbSourceBlocks += nbSourceInChild
+            nbBlocks += nbBlockInChild
+          } else {
+            nbSourceBlocks++
+            nbBlocks += stat.nlink - 1 // ignore current
+          }
+        },
+        { concurrency: 2 }
+      )
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        throw err
+      }
+    }
     return { nbSourceBlocks, nbBlocks }
   }
 

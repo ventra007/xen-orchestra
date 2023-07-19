@@ -59,14 +59,23 @@ describe('dedup tests', () => {
     })
   })
 
-  it('garbage collector', async () => {
+  it('garbage collector an stats ', async () => {
     await Disposable.use(getSyncedHandler({ url: `file://${dir}` }, { dedup: true }), async handler => {
       await handler.outputFile('in/anotherfolder/file', data, { dedup: true })
+      await handler.outputFile('in/anotherfolder/same', data, { dedup: true })
       await handler.outputFile('in/a/sub/folder/file', randomBytes(1024), { dedup: true })
+
+      let stats = await handler.deduplicationStats()
+      assert.strictEqual(stats.nbBlocks, 3)
+      assert.strictEqual(stats.nbSourceBlocks, 2)
+
       await fs.unlink(`${dir}/in/a/sub/folder/file`, { dedup: true })
       assert.strictEqual((await handler.list('xo-block-store')).length, 2)
 
       await handler.deduplicationGarbageCollector()
+      stats = await handler.deduplicationStats()
+      assert.strictEqual(stats.nbBlocks, 2)
+      assert.strictEqual(stats.nbSourceBlocks, 1)
 
       assert.strictEqual((await handler.list('xo-block-store')).length, 1)
     })
@@ -85,6 +94,13 @@ describe('dedup tests', () => {
       await handler.outputFile('in/a/sub/folder/edge', data, { dedup: true })
       await handler.unlink(dataPath, { dedup: true })
       // no error if source si already deleted
+      await assert.doesNotReject(() => handler.unlink('in/a/sub/folder/edge', { dedup: true }))
+    })
+  })
+  it('handles edge cases : non deduplicated file ', async () => {
+    await Disposable.use(getSyncedHandler({ url: `file://${dir}` }, { dedup: true }), async handler => {
+      await handler.outputFile('in/a/sub/folder/edge', data, { dedup: false })
+      // no error if deleting a non dedup file with dedup flags
       await assert.doesNotReject(() => handler.unlink('in/a/sub/folder/edge', { dedup: true }))
     })
   })
