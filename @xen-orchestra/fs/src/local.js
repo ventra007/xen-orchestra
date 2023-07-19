@@ -1,6 +1,6 @@
 import df from '@sindresorhus/df'
-import execa from 'execa'
 import fs from 'fs-extra'
+import fsx from 'fs-extended-attributes'
 import lockfile from 'proper-lockfile'
 import { createLogger } from '@xen-orchestra/log'
 import { asyncEach } from '@vates/async-each'
@@ -279,11 +279,27 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   // @todo : use a multiplatform package instead
   async #getExtendedAttribute(file, attribueName) {
-    const { stdout } = await execa('getfattr', ['-n', attribueName, '--only-value', this.getFilePath(file)])
-    return stdout
+    return new Promise((resolve, reject) => {
+      fsx.get(this.getFilePath(file), attribueName, (err, res) => {
+        if (err) {
+          reject(err)
+        } else {
+          // res is a buffer
+          resolve(res.toString('utf-8'))
+        }
+      })
+    })
   }
   async #setExtendedAttribute(file, attribueName, value) {
-    await execa('setfattr', ['-n', attribueName, '-v', value, this.getFilePath(file)])
+    return new Promise((resolve, reject) => {
+      fsx.set(this.getFilePath(file), attribueName, value, (err, res) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(res)
+        }
+      })
+    })
   }
 
   // create a hard link between to files
