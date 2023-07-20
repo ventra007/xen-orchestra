@@ -276,7 +276,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return createHash(this.#hashMethod).update(data).digest('hex')
   }
 
-  // @todo : use a multiplatform package instead
   async #getExtendedAttribute(file, attributeName) {
     return new Promise((resolve, reject) => {
       fsx.get(this.getFilePath(file), attributeName, (err, res) => {
