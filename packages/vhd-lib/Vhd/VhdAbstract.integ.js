@@ -104,7 +104,7 @@ describe('VhdAbstract', async () => {
   it('renames and unlink a VhdDirectory', async () => {
     const initalSize = 4
     const vhdDirectory = `${tempDir}/randomfile.dir`
-    await createRandomVhdDirectory(vhdDirectory, initalSize)
+    await createRandomVhdDirectory(vhdDirectory, initalSize, { dedup: true })
 
     await Disposable.use(async function* () {
       const handler = yield getSyncedHandler({ url: 'file:///' })
@@ -123,8 +123,8 @@ describe('VhdAbstract', async () => {
 
   it('unlinks a deduplicated VhdDirectory', async () => {
     const initalSize = 4
-    const vhdDirectory = `${tempDir}/random.dedup.vhd`
-    await createRandomVhdDirectory(vhdDirectory, initalSize)
+    const vhdDirectory = `${tempDir}/random.vhd`
+    await createRandomVhdDirectory(vhdDirectory, initalSize, { dedup: true })
 
     await Disposable.use(async function* () {
       const handler = yield getSyncedHandler({ url: 'file:///' })

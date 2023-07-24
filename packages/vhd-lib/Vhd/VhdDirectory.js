@@ -19,6 +19,7 @@ const NULL_COMPRESSOR = {
 }
 
 const COMPRESSORS = {
+  none: NULL_COMPRESSOR,
   gzip: {
     compress: (
       gzip => buffer =>
