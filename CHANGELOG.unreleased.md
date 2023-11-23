@@ -21,6 +21,7 @@
 - [Import/ESXi] Handle `Cannot read properties of undefined (reading 'perDatastoreUsage')` error when importing VM without storage (PR [#7168](https://github.com/vatesfr/xen-orchestra/pull/7168))
 - [Export/OVA] Handle export with resulting disk larger than 8.2GB (PR [#7183](https://github.com/vatesfr/xen-orchestra/pull/7183))
 - [Self Service] Fix error displayed after adding a VM to a resource set (PR [#7144](https://github.com/vatesfr/xen-orchestra/pull/7144))
+- VMs snapshotted with XO will no longer appear as regular VMs in other clients like `xe`
 
 ### Packages to release
 
@@ -42,6 +43,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/cr-seed-cli major
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/xapi patch
 - xen-api major
 - xo-server patch
 - xo-server-netbox minor
