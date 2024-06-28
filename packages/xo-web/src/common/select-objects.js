@@ -41,11 +41,14 @@ import {
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
   isSrWritable,
+  subscribeBackupNgJobs,
   subscribeCloudConfigs,
   subscribeCloudXoConfigBackups,
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
+  subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
   subscribeNetworkConfigs,
   subscribeProxies,
   subscribeRemotes,
@@ -1110,4 +1113,47 @@ export const SelectXoCloudConfig = makeSubscriptionSelect(
       })
     }),
   { placeholder: _('selectXoConfig') }
+)
+
+// ===================================================================
+
+const TYPE_FOR_SELECT_BACKUP_JOB = 'backupJob'
+export const SelectBackupJob = makeSubscriptionSelect(
+  subscriber => {
+    let xoObjects = []
+
+    let backupJobsLoaded, metadataJobsLoaded, mirrorJobsLoaded
+    const set = objects => {
+      xoObjects = xoObjects.concat(objects)
+
+      if (backupJobsLoaded && metadataJobsLoaded && mirrorJobsLoaded) {
+        subscriber({
+          xoObjects: sortBy(xoObjects, 'name'),
+        })
+      }
+    }
+    const unsubscribeBackupJob = subscribeBackupNgJobs(backupJobs => {
+      backupJobsLoaded = true
+      set(backupJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })))
+    })
+
+    const unsubscribeMetadataJob = subscribeMetadataBackupJobs(metadataJobs => {
+      metadataJobsLoaded = true
+      set(metadataJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })))
+    })
+
+    const unsubscribeMirrorJob = subscribeMirrorBackupJobs(mirrorJobs => {
+      mirrorJobsLoaded = true
+      set(mirrorJobs.map(job => ({ ...job, _type: job.type, type: TYPE_FOR_SELECT_BACKUP_JOB })))
+    })
+
+    return () => {
+      unsubscribeBackupJob()
+      unsubscribeMetadataJob()
+      unsubscribeMirrorJob()
+    }
+  },
+  {
+    placeholder: _('selectBackupJob'),
+  }
 )
