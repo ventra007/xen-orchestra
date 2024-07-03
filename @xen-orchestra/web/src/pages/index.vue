@@ -1,5 +1,7 @@
 <template>
-  <!-- eslint-disable @intlify/vue-i18n/no-raw-text -->
-  Welcome to XO 6
-  <!-- eslint-enable @intlify/vue-i18n/no-raw-text -->
+  <PoolStatus />
 </template>
+
+<script lang="ts" setup>
+import PoolStatus from '@/components/pool/dashboard/PoolStatus.vue'
+</script>
