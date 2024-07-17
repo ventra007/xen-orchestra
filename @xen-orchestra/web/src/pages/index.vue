@@ -1,7 +1,7 @@
 <template>
-  <PoolStatus />
+  <ServerStatus />
 </template>
 
 <script lang="ts" setup>
-import PoolStatus from '@/components/pool/dashboard/PoolStatus.vue'
+import ServerStatus from '@/components/pool/dashboard/ServerStatus.vue'
 </script>
